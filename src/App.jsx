@@ -8,7 +8,9 @@ const [questions,setQuestions]=useState([]);
 const [idx,setIdx]=useState(0);
 const [score,setScore]=useState(0);
 const [answer,setAnswer]=useState("");
+const [feedback,setFeedback]=useState(null);
 const [balls,setBalls]=useState([]);
+const [mode,setMode] = useState(10);
 
 const makeGame=(limit)=>{
  let q=[];
@@ -22,8 +24,47 @@ const makeGame=(limit)=>{
   let opts=[r,Math.max(0,r-1),r+1].sort(()=>Math.random()-0.5);
   q.push({a,b,r,opts});
  }
- setQuestions(q);setIdx(0);setScore(0);setView("game");
+ setMode(limit);
+setQuestions(q);
+setIdx(0);
+setScore(0);
+setView("game");
 };
+
+if(feedback){
+
+ return (
+   <div style={styles.home}>
+
+     <div style={{
+       fontSize:80,
+       marginBottom:20
+     }}>
+       {feedback.correct ? "🎉" : "😢"}
+     </div>
+
+     <h1>
+{feedback.correct
+? "🎉 ¡Muy bien!"
+: "😢 Te equivocaste"}
+     </h1>
+
+     <h2>
+       La respuesta correcta era:
+       {" "}
+       {feedback.correctAnswer}
+     </h2>
+
+     <button
+       style={styles.btn}
+       onClick={continueGame}
+     >
+       Siguiente →
+     </button>
+
+   </div>
+ );
+}
 
 if(view==="home") return <div style={styles.home}>
 <h1 style={styles.logo}>➕ SUMA</h1>
@@ -47,13 +88,32 @@ if(view==="result"){
  </div>
 }
 
-const q=questions[idx];
-
 const next=(ok)=>{
- if(ok) setScore(s=>s+1);
- if(idx===TOTAL-1){setView("result");return;}
- setIdx(idx+1);setAnswer("");setBalls([]);
+
+ if(ok){
+   setScore(s=>s+1);
+ }
+
+ setFeedback({
+   correct: ok,
+   correctAnswer: q.r
+ });
+
 };
+
+const continueGame=()=>{
+
+ if(idx===TOTAL-1){
+   setView("result");
+   return;
+ }
+
+ setIdx(idx+1);
+ setAnswer("");
+ setBalls([]);
+ setFeedback(null);
+
+}; 
 
 return <div style={styles.game}>
 <h2>Pregunta {idx+1} de 30</h2>
@@ -61,20 +121,66 @@ return <div style={styles.game}>
 <div style={styles.sum}>{q.a} + {q.b} = ?</div>
 
 {idx<10 ? <>
-<div style={styles.row}>{Array(q.a).fill(0).map((_,i)=><span key={i}>⚽</span>)}</div>
-<div style={styles.row}>{Array(q.b).fill(0).map((_,i)=><span key={i}>⚽</span>)}</div>
+<div style={styles.row}>
+{Array(q.a).fill(0).map((_,i)=>
+<span key={i}>🔵</span>
+)}
+</div>
+
+<div style={styles.row}>
+{Array(q.b).fill(0).map((_,i)=>
+<span key={i}>🟠</span>
+)}
+</div>
 <div>{q.opts.map(o=><button key={o} style={styles.opt} onClick={()=>next(o===q.r)}>{o}</button>)}</div>
 </> :
 <>
+<div>
+
+<h3>Primer número ({q.a})</h3>
+
 <div style={styles.row}>
-{Array(q.r).fill(0).map((_,i)=>
-<span key={i} style={{fontSize:34,cursor:"pointer"}}
-onClick={()=>{
-const c=[...balls];
-c[i]=!c[i];
-setBalls(c);
-}}>{balls[i]?"🔵":"⚪"}</span>)}
+{
+Array(mode === 20 ? 20 : 10)
+.fill(0)
+.map((_,i)=>
+
+<span
+key={i}
+style={{
+fontSize:34,
+cursor:"pointer"
+}}
+>
+{i < q.a ? "🔵" : "⚪"}
+</span>
+
+)
+}
 </div>
+
+<h3>Segundo número ({q.b})</h3>
+
+<div style={styles.row}>
+{
+Array(mode === 20 ? 20 : 10)
+.fill(0)
+.map((_,i)=>
+
+<span
+key={i}
+style={{
+fontSize:34,
+cursor:"pointer"
+}}
+>
+{i < q.b ? "🟠" : "⚪"}
+</span>
+
+)
+}
+</div>
+
 <input style={styles.input} type="number" value={answer} onChange={e=>setAnswer(e.target.value)}/>
 <br/>
 <button style={styles.btn} onClick={()=>next(Number(answer)===q.r)}>Responder</button>
