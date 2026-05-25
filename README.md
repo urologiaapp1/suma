@@ -1,2 +1,2 @@
-# suma
-app para sumar a los 6 años
+# Suma V2
+Aplicación educativa infantil para practicar sumas.
